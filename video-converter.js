@@ -15,7 +15,7 @@ const configuration = {
 	"ffprobe_binary": "/usr/bin/ffprobe",
 	"ffprobe_parameters": "-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1",
 	"ffprobe_max_video_length": 30,
-	"log_folder": null,
+	"log_folder": ".",
 	"polling_interval_ms": 5000,
 	"done_notify_method": null,
 	"done_get_endpoint": null,
@@ -86,6 +86,7 @@ function scheduledStuff()
 						let video_duration = 0;
 						try
 						{
+							/* https://trac.ffmpeg.org/wiki/FFprobeTips */
 							video_duration = proc.execSync(configuration.ffprobe_binary + ' ' + configuration.ffprobe_parameters + ' -i "' + configuration.folder_in + '/' + filelist[d].name + '"', { timeout: 5000});
 							video_duration = parseInt(video_duration);
 						}
@@ -259,7 +260,27 @@ function scheduledStuff()
 /* Better console.log */
 function log(s)
 {
-	console.log(getDateTime() + ` ${s}`);
+	let log_line = getDateTime() + ` ${s}`;
+	if (configuration.log_folder != null)
+	{
+		let log_file = `${configuration.log_folder}/video-converter.log`;
+		try
+		{
+			let fd = fs.openSync(log_file, 'a');
+			fs.writeSync(fd, log_line.trim() + "\n");
+			fs.closeSync(fd);
+		}
+		catch (e)
+		{
+			/* can't write the log, so spit it to console */
+			console.log(`error writing ${log_file}, error=${e}`)
+			console.log(log_line);
+		}
+	}
+	else
+	{
+		console.log(log_line);
+	}
 }
 
 /**

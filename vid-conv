@@ -1,2 +1,2 @@
 #!/bin/bash
-nohup node video-converter.js &>video-converter.txt &
+nohup node video-converter.js &>video-converter-console.txt &

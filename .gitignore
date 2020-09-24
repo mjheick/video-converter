@@ -1,4 +1,5 @@
-video-converter.txt
+video-converter.log
+video-converter-console.txt
 in/*
 done/*
 work/*
