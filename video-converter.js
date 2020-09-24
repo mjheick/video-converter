@@ -59,7 +59,8 @@ function scheduledStuff()
 				let entry = {
 					'name': dirent.name,
 					'size': fs_size,
-					'status': 'new'
+					'status': 'new',
+					'ffprobe': null
 				};
 				filelist.push(entry);
 			}
@@ -80,22 +81,29 @@ function scheduledStuff()
 				if (fs_size == filelist[d].size)
 				{
 					// before we decide to launch, ffprobe this to see if we can use it. if not, cull it
-					let video_duration = 0;
-					try
+					if (filelist[d].ffprobe == null)
 					{
-						video_duration = proc.execSync(configuration.ffprobe_binary + ' ' + configuration.ffprobe_parameters + ' -i ' + configuration.folder_in + '/' + filelist[d].name, { timeout: 5000});
-						video_duration = parseInt(video_duration);
+						let video_duration = 0;
+						try
+						{
+							video_duration = proc.execSync(configuration.ffprobe_binary + ' ' + configuration.ffprobe_parameters + ' -i "' + configuration.folder_in + '/' + filelist[d].name + '"', { timeout: 5000});
+							video_duration = parseInt(video_duration);
+						}
+						catch (e)
+						{
+							video_duration = -1;
+						}
+						if (video_duration < 0)
+						{
+							fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_error + '/' + filelist[d].name);
+							filelist[d].status = 'cull';
+							continue;
+						}
+						filelist[d].ffprobe = video_duration;
 					}
-					catch (e)
+					if (filelist[d].ffprobe > configuration.ffprobe_max_video_length)
 					{
-						/* Not an actual video file to get a duration. */
-						fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_error + '/' + filelist[d].name);
-						filelist[d].status = 'cull';
-						continue;
-					}
-					if (video_duration > configuration.ffprobe_max_video_length)
-					{
-						log(`${filelist[d].name} = ${video_duration}s, greater than ${configuration.ffprobe_max_video_length}s, culling`);
+						log(`${filelist[d].name} = ${filelist[d].ffprobe}s, greater than ${configuration.ffprobe_max_video_length}s, culling`);
 						try /* Move this file to error */
 						{
 							fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_error + '/' + filelist[d].name);
