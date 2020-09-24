@@ -1,6 +1,6 @@
 /* https://nodejs.org/dist/latest-v12.x/docs/api/ */
 const fs = require('fs');
-const { exec } = require('child_process');
+const proc = require('child_process');
 
 /* Have some sort of loader for configuration to override internals */
 const configuration = {
@@ -12,6 +12,9 @@ const configuration = {
 	"ffmpeg_parameters": "-vcodec vp8 -acodec libvorbis",
 	"ffmpeg_output_extension": "webm",
 	"ffmpeg_simultaneous_conversions" : 5,
+	"ffprobe_binary": "/usr/bin/ffprobe",
+	"ffprobe_parameters": "-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1",
+	"ffprobe_max_video_length": 30,
 	"log_folder": null,
 	"polling_interval_ms": 5000,
 	"done_notify_method": null,
@@ -76,6 +79,19 @@ function scheduledStuff()
 				let fs_size = obj_fs_statSync['size'];
 				if (fs_size == filelist[d].size)
 				{
+					// before we decide to launch, ffprobe this to see if we can use it. if not, cull it
+					let video_duration = 0;
+					video_duration = proc.execSync(configuration.ffprobe_binary + ' ' + configuration.ffprobe_parameters + ' -i ' + configuration.folder_in + '/' + filelist[d].name, { timeout: 5000});
+					if (video_duration > configuration.ffprobe_max_video_length)
+					{
+						log(`${filelist[d].name} = ${video_duration}s, greater than ${configuration.ffprobe_max_video_length}s, culling`);
+						try /* Move this file to error */
+						{
+							fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_error + '/' + filelist[d].name);
+						} catch (e) { /* Silent */ }
+						filelist[d].status = 'cull';
+						continue;
+					}
 					// check to see if we can launch this right now
 					if (processing.length < configuration.ffmpeg_simultaneous_conversions)
 					{
@@ -86,8 +102,6 @@ function scheduledStuff()
 						/* Pre-stuff to get the file into a location */
 						fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_work + '/' + filelist[d].name);
 
-						/* Launching ffmpeg */
-						/* https://trac.ffmpeg.org/wiki/Scaling */
 						let cmd_ffmpeg_exec = configuration.ffmpeg_binary + ' -i "' + configuration.folder_work + '/' + filelist[d].name + '"';
 						if (configuration.ffmpeg_parameters !== null)
 						{
@@ -96,7 +110,7 @@ function scheduledStuff()
 						cmd_ffmpeg_exec += ' "' + configuration.folder_work + '/' + filelist[d].name + '.' + configuration.ffmpeg_output_extension + '"';
 
 						log(`executing [${cmd_ffmpeg_exec}]`);
-						processing[processing.length - 1].childProcess = exec(cmd_ffmpeg_exec, function (error, stdout, stderr) {
+						processing[processing.length - 1].childProcess = proc.exec(cmd_ffmpeg_exec, function (error, stdout, stderr) {
 							if (error)
 							{
 								log(error.stack);
