@@ -1,0 +1,18 @@
+{
+	"folder_in": "./in",
+	"folder_work": "./work",
+	"folder_error": "./error",
+	"folder_done": "./done",
+	"ffmpeg_binary": "/usr/bin/ffmpeg",
+	"ffmpeg_parameters": "-vcodec vp8 -acodec libvorbis",
+	"ffmpeg_output_extension": "webm",
+	"ffmpeg_simultaneous_conversions" : 5,
+	"log_folder": null,
+	"polling_interval_ms": 5000,
+	"done_notify_method": null,
+	"done_get_endpoint": null,
+	"done_get_var_filename": null,
+	"done_post_endpoint": null,
+	"done_post_var_filename": null,
+	"done_post_var_content": null
+}
