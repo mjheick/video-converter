@@ -81,7 +81,18 @@ function scheduledStuff()
 				{
 					// before we decide to launch, ffprobe this to see if we can use it. if not, cull it
 					let video_duration = 0;
-					video_duration = proc.execSync(configuration.ffprobe_binary + ' ' + configuration.ffprobe_parameters + ' -i ' + configuration.folder_in + '/' + filelist[d].name, { timeout: 5000});
+					try
+					{
+						video_duration = proc.execSync(configuration.ffprobe_binary + ' ' + configuration.ffprobe_parameters + ' -i ' + configuration.folder_in + '/' + filelist[d].name, { timeout: 5000});
+						video_duration = parseInt(video_duration);
+					}
+					catch (e)
+					{
+						/* Not an actual video file to get a duration. */
+						fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_error + '/' + filelist[d].name);
+						filelist[d].status = 'cull';
+						continue;
+					}
 					if (video_duration > configuration.ffprobe_max_video_length)
 					{
 						log(`${filelist[d].name} = ${video_duration}s, greater than ${configuration.ffprobe_max_video_length}s, culling`);
