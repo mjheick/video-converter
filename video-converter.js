@@ -311,6 +311,5 @@ function reConfigure()
 				configuration[keys[k]] = file_config[keys[k]];
 			}
 		}
-		//console.log(`config[${keys[k]}] = ${configuration[keys[k]]}`);
 	}
 }
