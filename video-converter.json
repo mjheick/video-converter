@@ -12,10 +12,7 @@
 	"ffprobe_max_video_length": 30,
 	"log_folder": ".",
 	"polling_interval_ms": 5000,
-	"done_notify_method": null,
-	"done_get_endpoint": null,
-	"done_get_var_filename": null,
-	"done_post_endpoint": null,
-	"done_post_var_filename": null,
-	"done_post_var_content": null
+	"done_get_url": null,
+	"done_get_var_code": null,
+	"done_get_var_filename": null
 }

@@ -1,2 +1,12 @@
 #!/bin/bash
+if [ "$1" == "kill" ]; then
+  if [ "x`pgrep node`" == "x" ]; then
+    echo "nothing to terminate";
+    exit;
+  fi
+  echo "nuking `pgrep node`";
+  kill `pgrep node`;
+  exit;
+fi
+echo "launching";
 nohup node video-converter.js &>video-converter-console.txt &

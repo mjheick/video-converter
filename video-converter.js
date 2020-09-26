@@ -1,5 +1,6 @@
 /* https://nodejs.org/dist/latest-v12.x/docs/api/ */
 const fs = require('fs');
+const http = require('http');
 const proc = require('child_process');
 
 /* Have some sort of loader for configuration to override internals */
@@ -17,12 +18,9 @@ const configuration = {
 	"ffprobe_max_video_length": 30,
 	"log_folder": ".",
 	"polling_interval_ms": 5000,
-	"done_notify_method": null,
-	"done_get_endpoint": null,
-	"done_get_var_filename": null,
-	"done_post_endpoint": null,
-	"done_post_var_filename": null,
-	"done_post_var_content": null,
+	"done_get_url": null,
+	"done_get_var_code": null,
+	"done_get_var_filename": null
 };
 
 /* A list of files we're seeing/converting */
@@ -98,6 +96,7 @@ function scheduledStuff()
 						{
 							fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_error + '/' + filelist[d].name);
 							filelist[d].status = 'cull';
+							notifyCompletion(filelist[d].name, '400'); /* Notify file is bad */
 							continue;
 						}
 						filelist[d].ffprobe = video_duration;
@@ -110,6 +109,7 @@ function scheduledStuff()
 							fs.renameSync(configuration.folder_in + '/' + filelist[d].name, configuration.folder_error + '/' + filelist[d].name);
 						} catch (e) { /* Silent */ }
 						filelist[d].status = 'cull';
+						notifyCompletion(filelist[d].name, '400'); /* Notify file is bad */
 						continue;
 					}
 					// check to see if we can launch this right now
@@ -177,6 +177,7 @@ function scheduledStuff()
 			log('catch' + e);
 			log(`error with ${filelist[d].name}, culling`);
 			filelist[d].status = 'cull';
+			notifyCompletion(filelist[d].name, '400'); /* Notify file is bad */
 		}
 	}
 
@@ -216,6 +217,7 @@ function scheduledStuff()
 					/* Success */
 					fs.renameSync(configuration.folder_work + '/' + processing[w].name  + '.' + configuration.ffmpeg_output_extension, configuration.folder_done + '/' + processing[w].name + '.' + configuration.ffmpeg_output_extension);
 					fs.unlinkSync(configuration.folder_work + '/' + processing[w].name);
+					notifyCompletion(filelist[d].name, '200'); /* Notify file is good */
 				}
 				else
 				{
@@ -228,6 +230,7 @@ function scheduledStuff()
 					{
 						fs.unlinkSync(configuration.folder_work + '/' + processing[w].name  + '.' + configuration.ffmpeg_output_extension);
 					} catch (e) { /* Silent */ }
+					notifyCompletion(filelist[d].name, '400'); /* Notify file is bad */
 				}
 			}
 		}
@@ -328,9 +331,36 @@ function reConfigure()
 			if (configuration[keys[k]] != file_config[keys[k]])
 			{
 				// change configuration and log it
-				log(`config change, key=${keys[k]}, old=${configuration[keys[k]]}, new=${file_config[keys[k]]}`);
+				log(`reConfigure(): config change, key=${keys[k]}, old=${configuration[keys[k]]}, new=${file_config[keys[k]]}`);
 				configuration[keys[k]] = file_config[keys[k]];
 			}
 		}
 	}
+}
+
+/**
+ * Based on configuration we need to tell something a file is done
+ */
+function notifyCompletion(filename, code)
+{
+	if ((configuration.done_get_url == null) && (configuration.done_get_var_code == null) && (configuration.done_get_var_filename == null))
+	{
+		return;
+	}
+	/* need all 3 variables set to make this happen */
+	if ((configuration.done_get_url == null) || (configuration.done_get_var_code == null) || (configuration.done_get_var_filename == null))
+	{
+		log(`notifyCompletion(): something is null, done_get_url=${configuration.done_get_url}, done_get_var_code=${configuration.done_get_var_code}, done_get_var_filename=${configuration.done_get_var_filename}`);
+		return;
+	}
+	/**
+	 * Simple: Make a request to http://done_get_url?done_get_var_filename=filename&done_get_var_code=code
+	 * https://nodejs.org/api/http.html#http_http_get_url_options_callback
+	 */
+	http.get(configuration.done_get_url + '?' + configuration.done_get_var_code + '=' + code + '&' + configuration.done_get_var_filename + '=' + filename, (res) => {
+		const {statusCode} = res;
+		log(`notifyCompletion(): ${filename}:${code} got statusCode=${statusCode}`);
+	}).on('error', (e) => {
+		log(`notifyCompletion(): error submitting response for ${filename}, ${e.message}`);
+	});
 }
