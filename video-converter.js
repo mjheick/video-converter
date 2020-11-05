@@ -217,7 +217,7 @@ function scheduledStuff()
 					/* Success */
 					fs.renameSync(configuration.folder_work + '/' + processing[w].name  + '.' + configuration.ffmpeg_output_extension, configuration.folder_done + '/' + processing[w].name + '.' + configuration.ffmpeg_output_extension);
 					fs.unlinkSync(configuration.folder_work + '/' + processing[w].name);
-					notifyCompletion(filelist[d].name, '200'); /* Notify file is good */
+					notifyCompletion(filelist[w].name, '200'); /* Notify file is good */
 				}
 				else
 				{
@@ -230,7 +230,7 @@ function scheduledStuff()
 					{
 						fs.unlinkSync(configuration.folder_work + '/' + processing[w].name  + '.' + configuration.ffmpeg_output_extension);
 					} catch (e) { /* Silent */ }
-					notifyCompletion(filelist[d].name, '400'); /* Notify file is bad */
+					notifyCompletion(filelist[w].name, '400'); /* Notify file is bad */
 				}
 			}
 		}
