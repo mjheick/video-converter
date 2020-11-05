@@ -6,7 +6,7 @@
 	"ffmpeg_binary": "/usr/bin/ffmpeg",
 	"ffmpeg_parameters": "-vcodec vp9 -acodec libvorbis",
 	"ffmpeg_output_extension": "webm",
-	"ffmpeg_simultaneous_conversions" : 3,
+	"ffmpeg_simultaneous_conversions" : 4,
 	"ffprobe_binary": "/usr/bin/ffprobe",
 	"ffprobe_parameters": "-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1",
 	"ffprobe_max_video_length": 3600,

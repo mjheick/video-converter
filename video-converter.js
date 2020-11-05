@@ -137,7 +137,7 @@ function scheduledStuff()
 						cmd_ffmpeg_exec += ' "' + configuration.folder_work + '/' + filelist[d].name + '.' + configuration.ffmpeg_output_extension + '"';
 
 						/* To avoid ERR_CHILD_PROCESS_STDIO_MAXBUFFER, we redirect output to ffmpeg_output_filename.log */
-						cmd_ffmpeg_exec += ' >' + configuration.log_folder + '/ffmpeg_output_' + filelist[d].name + '.log 2>&1';
+						cmd_ffmpeg_exec += ' >"' + configuration.log_folder + '/ffmpeg_output_' + filelist[d].name + '.log" 2>&1';
 
 						log(`executing [${cmd_ffmpeg_exec}]`);
 						processing[processing.length - 1].childProcess = proc.exec(cmd_ffmpeg_exec, function (error, stdout, stderr) {
@@ -147,8 +147,7 @@ function scheduledStuff()
 								log('Error code: ' + error.code);
 								log('Signal received: ' + error.signal);
 							}
-							log('Child Process STDOUT: ' + stdout); // with proper redirection, this should be empty
-							log('Child Process STDERR: ' + stderr); // with proper redirection, this should be empty
+							// don't need to log stdout and stderr, we're shell redirecting above
 						});
 					}
 				}
