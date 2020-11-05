@@ -5,7 +5,6 @@ const proc = require('child_process');
 
 /* Have some sort of loader for configuration to override internals */
 const configuration = {
-{
 	"folder_in": "./in",
 	"folder_work": "./work",
 	"folder_error": "./error",
