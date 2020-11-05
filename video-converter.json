@@ -10,7 +10,7 @@
 	"ffprobe_binary": "/usr/bin/ffprobe",
 	"ffprobe_parameters": "-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1",
 	"ffprobe_max_video_length": 3600,
-	"log_folder": ".",
+	"log_folder": "./log",
 	"polling_interval_ms": 5000,
 	"done_get_url": null,
 	"done_get_var_code": null,
