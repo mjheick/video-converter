@@ -1,6 +1,6 @@
-video-converter.log
-video-converter-console.txt
 in/*
 done/*
 work/*
 error/*
+log/video-converter.log
+log/video-converter-console.txt
