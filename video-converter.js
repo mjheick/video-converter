@@ -5,18 +5,19 @@ const proc = require('child_process');
 
 /* Have some sort of loader for configuration to override internals */
 const configuration = {
+{
 	"folder_in": "./in",
 	"folder_work": "./work",
 	"folder_error": "./error",
 	"folder_done": "./done",
 	"ffmpeg_binary": "/usr/bin/ffmpeg",
-	"ffmpeg_parameters": "-vcodec vp8 -acodec libvorbis",
+	"ffmpeg_parameters": "-vcodec vp9 -acodec libvorbis",
 	"ffmpeg_output_extension": "webm",
-	"ffmpeg_simultaneous_conversions" : 5,
+	"ffmpeg_simultaneous_conversions" : 3,
 	"ffprobe_binary": "/usr/bin/ffprobe",
 	"ffprobe_parameters": "-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1",
-	"ffprobe_max_video_length": 30,
-	"log_folder": ".",
+	"ffprobe_max_video_length": 3600,
+	"log_folder": "./log",
 	"polling_interval_ms": 5000,
 	"done_get_url": null,
 	"done_get_var_code": null,
@@ -27,7 +28,9 @@ const configuration = {
 var filelist = [];
 var processing = [];
 
+var initial_config_done = false; /* Prevents the first bit of output for actual log configurations */
 reConfigure();
+initial_config_done = true;
 scheduledStuff();
 
 function scheduledStuff()
@@ -48,11 +51,11 @@ function scheduledStuff()
 				{
 					add_file = false;
 				}
-				// We don't want "hidden" files
-				if (dirent.name.substr(0,1) == ".")
-				{
-					add_file = false;
-				}
+			}
+			// We don't want "hidden" files
+			if (dirent.name.substr(0,1) == ".")
+			{
+				add_file = false;
 			}
 			if (add_file)
 			{
@@ -327,7 +330,9 @@ function reConfigure()
 	}
 	catch (e)
 	{
-		log('reConfigure(): catch()=' + e);
+		if (initial_config_done) {
+			log('reConfigure(): catch()=' + e);
+		}
 		return;
 	}
 
@@ -339,7 +344,9 @@ function reConfigure()
 			if (configuration[keys[k]] != file_config[keys[k]])
 			{
 				// change configuration and log it
-				log(`reConfigure(): config change, key=${keys[k]}, old=${configuration[keys[k]]}, new=${file_config[keys[k]]}`);
+				if (initial_config_done) {
+					log(`reConfigure(): config change, key=${keys[k]}, old=${configuration[keys[k]]}, new=${file_config[keys[k]]}`);
+				}
 				configuration[keys[k]] = file_config[keys[k]];
 			}
 		}
