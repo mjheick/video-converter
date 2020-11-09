@@ -2,5 +2,5 @@ in/*
 done/*
 work/*
 error/*
-log/video-converter.log
-log/video-converter-console.txt
+log/*
+video-converter-console.txt
